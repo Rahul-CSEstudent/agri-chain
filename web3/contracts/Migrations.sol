@@ -18,6 +18,7 @@ contract Farmer {
     }
 
     mapping(address => FarmerDetails) listOfFarmers;
+    address[] public farmerAccts;
 
     function createFarmer(string memory name, string memory phoneNumber)
         public
@@ -27,8 +28,9 @@ contract Farmer {
             name,
             0,
             phoneNumber,
-            new details[](0)
+            new ListingDetails[](0)
         );
+        farmerAccts.push(msg.sender);
     }
 
     function increaseReputation(address farmerId) public {
@@ -79,26 +81,25 @@ contract Farmer {
         view
         returns (ListingWithMoreInfo[] memory)
     {
-        ListingWithMoreInfo[] memory listings = new ListingWithMoreInfo[](0);
+        ListingWithMoreInfo[] memory listings = new ListingWithMoreInfo[](
+            farmerAccts.length
+        );
         // loop through all the farmers and find the listings of the crop
-        for (uint256 i = 0; i < listOfFarmers.length; i++) {
-            for (uint256 j = 0; j < listOfFarmers[i].listings.length; j++) {
-                if (
-                    keccak256(
-                        abi.encodePacked(listOfFarmers[i].listings[j].crop)
-                    ) == keccak256(abi.encodePacked(crop))
-                ) {
-                    listings.push(
-                        ListingWithMoreInfo(
-                            listOfFarmers[i].id,
-                            listOfFarmers[i].listings[j].crop,
-                            listOfFarmers[i].listings[j].quantity,
-                            listOfFarmers[i].listings[j].price,
-                            listOfFarmers[i].listings[j].postedDate,
-                            listOfFarmers[i].displayName,
-                            listOfFarmers[i].reputations,
-                            listOfFarmers[i].phoneNumber
-                        )
+        for (uint256 i = 0; i < farmerAccts.length; i++) {
+            FarmerDetails memory farmer = listOfFarmers[farmerAccts[i]];
+            for (uint256 j = 0; j < farmer.listings.length; j++) {
+                ListingDetails memory listing = farmer.listings[j];
+                if (keccak256(abi.encodePacked(listing.crop)) ==
+                    keccak256(abi.encodePacked(crop))) {
+                    listings[i] = ListingWithMoreInfo(
+                        farmer.id,
+                        listing.crop,
+                        listing.quantity,
+                        listing.price,
+                        listing.postedDate,
+                        farmer.displayName,
+                        farmer.reputations,
+                        farmer.phoneNumber
                     );
                 }
             }
@@ -112,21 +113,25 @@ contract Farmer {
         view
         returns (ListingWithMoreInfo[] memory)
     {
-        ListingWithMoreInfo[] memory listings = new ListingWithMoreInfo[](0);
-        for (uint256 i = 0; i < listOfFarmers[farmerId].listings.length; i++) {
-            listings.push(
-                ListingWithMoreInfo(
-                    listOfFarmers[farmerId].id,
-                    listOfFarmers[farmerId].listings[i].crop,
-                    listOfFarmers[farmerId].listings[i].quantity,
-                    listOfFarmers[farmerId].listings[i].price,
-                    listOfFarmers[farmerId].listings[i].postedDate,
-                    listOfFarmers[farmerId].displayName,
-                    listOfFarmers[farmerId].reputations,
-                    listOfFarmers[farmerId].phoneNumber
-                )
+        ListingWithMoreInfo[] memory listings = new ListingWithMoreInfo[](
+            farmerAccts.length
+        );
+        // get the listings of a particular farmer
+        FarmerDetails memory farmer = listOfFarmers[farmerId];
+        for (uint256 j = 0; j < farmer.listings.length; j++) {
+            ListingDetails memory listing = farmer.listings[j];
+            listings[j] = ListingWithMoreInfo(
+                farmer.id,
+                listing.crop,
+                listing.quantity,
+                listing.price,
+                listing.postedDate,
+                farmer.displayName,
+                farmer.reputations,
+                farmer.phoneNumber
             );
         }
+
         return listings;
     }
 
@@ -136,20 +141,23 @@ contract Farmer {
         view
         returns (ListingWithMoreInfo[] memory)
     {
-        ListingWithMoreInfo[] memory listings = new ListingWithMoreInfo[](0);
-        for (uint256 i = 0; i < listOfFarmers.length; i++) {
-            for (uint256 j = 0; j < listOfFarmers[i].listings.length; j++) {
-                listings.push(
-                    ListingWithMoreInfo(
-                        listOfFarmers[i].id,
-                        listOfFarmers[i].listings[j].crop,
-                        listOfFarmers[i].listings[j].quantity,
-                        listOfFarmers[i].listings[j].price,
-                        listOfFarmers[i].listings[j].postedDate,
-                        listOfFarmers[i].displayName,
-                        listOfFarmers[i].reputations,
-                        listOfFarmers[i].phoneNumber
-                    )
+        ListingWithMoreInfo[] memory listings = new ListingWithMoreInfo[](
+            farmerAccts.length
+        );
+        // loop through all the farmers and find the listings of the crop
+        for (uint256 i = 0; i < farmerAccts.length; i++) {
+            FarmerDetails memory farmer = listOfFarmers[farmerAccts[i]];
+            for (uint256 j = 0; j < farmer.listings.length; j++) {
+                ListingDetails memory listing = farmer.listings[j];
+                listings[i] = ListingWithMoreInfo(
+                    farmer.id,
+                    listing.crop,
+                    listing.quantity,
+                    listing.price,
+                    listing.postedDate,
+                    farmer.displayName,
+                    farmer.reputations,
+                    farmer.phoneNumber
                 );
             }
         }
